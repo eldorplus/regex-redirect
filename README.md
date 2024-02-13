@@ -1,2 +1,2 @@
 # regex-redirect
-Host redirection extension for firefox
+Http request redirection hosted in Docker container

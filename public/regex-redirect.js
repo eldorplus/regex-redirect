@@ -1,7 +1,8 @@
-let prefix = "[firefox-redirect]";
+let prefix = "[regex-redirect]";
 let log    = (...args) => console.log(  prefix, ...args);
 let err    = (...args) => console.error(prefix, ...args);
 
+let whitelistHosts = [];
 let table   = document.querySelector("#redirect_table");
 let new_btn = document.querySelector("#new_entry_btn");
 
