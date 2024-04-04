@@ -95,3 +95,14 @@ button:focus span {
         color: black;
     }
 }
+
+.clignote {
+    color: red;
+    animation: clignote .8s step-start infinite;
+}
+
+@keyframes clignote {
+    0%   { opacity: 1; }
+    40%  { opacity: 0; }
+    100% { opacity: 1; }
+}

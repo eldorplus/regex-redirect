@@ -156,7 +156,7 @@ const App = (props) => {
                     </div>
                 </div>
                 <div>Pensez à la modifier et l'ajouter dans vos favoris !</div>
-                <h1>Cette page sera désactivée dans 6 mois </h1>
+                <h1 className='clignote'>Cette page sera désactivée dans 6 mois </h1>
             </div>
         </HttpsRedirect>
     );
