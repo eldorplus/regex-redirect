@@ -40,7 +40,7 @@ const useOutsideClick = (ref, callback) => {
         const listener = (event) => {
             const isClickedOutside =
                 !ref.current.contains(event.target) &&
-                !document.getElementById('gtx-trans').contains(event.target);
+                !document.getElementById('regex-trans').contains(event.target);
             if (isClickedOutside) {
                 callback();
             }
@@ -74,7 +74,7 @@ const HttpsRedirect = ({disabled, children}) => {
     return children;
 };
 
-const Redirect = ({domain, protocol}) => {
+const Redirect = ({redirectUrl}) => {
 
     const containerRef = React.useRef(null);
     const [isClicked, setIsClicked] = React.useState(false);
@@ -84,11 +84,7 @@ const Redirect = ({domain, protocol}) => {
     });
 
     const handerRedirect = React.useCallback(async () => {
-        let redirectUrl = protocol.replace(
-            /^http(?!s)/,
-            'https'
-        ).concat('//').concat(domain);
-        log("shout be redirect ==>", redirectUrl)
+        log("shout be redirect ==>", redirectUrl.toString())
         setIsClicked(!isClicked);
         const timeout = setTimeout(() => {
             // 👇️ redirects to an external URL
@@ -99,42 +95,68 @@ const Redirect = ({domain, protocol}) => {
     }, [isClicked])
 
     return (
-        <div className="relative" ref={containerRef}>
-            {!isClicked && (<button onClick={handerRedirect}>Redirect to {domain}</button>)}
-            {isClicked && (<div>Will redirect in 3 seconds...</div>)}
-        </div>
+        <span id="regex-trans" className="relative" ref={containerRef}>
+            {!isClicked && (<button onClick={handerRedirect}>{redirectUrl.toString()}</button>)}
+            {isClicked && (<span>Redirection dans 3 secondes...</span>)}
+        </span>
     );
 };
-
-const Welcome = ({name}) => {
-    // Use the render function to return JSX component
-    return (
-        <div className="welcome">
-            <h1>This {name} will be deactivated in 6 months.</h1>
-            <p>Please click here</p>
-        </div>
-    );
-}
-
-
-// https://github.com/sospedra/next.js/blob/canary/packages/next/client/link.tsx
-let {pathname, hostname, origin, search, protocol} = window.location
-let domain = hostname;
-
-if (Object.hasOwn(whitelistHosts, hostname)) {
-    log(pathname, hostname)
-    domain = whitelistHosts[hostname]
-    log(domain);
-}
 
 // Create a function to wrap up your component
 const App = (props) => {
 
+    const [redirectUrls, setRedirectUrls] = React.useState([]);
+
+    React.useEffect(() => {
+        const withPathname = [
+            {name: 'Portail PIM', path:  'webui/SG_PORTAL_SGDBF'},
+            {name: 'Portail Fournisseur', path:'webui/SG_PORTAL_SUPPLIER'}
+        ];
+        const newRedirectUrls = []
+
+        // https://github.com/sospedra/next.js/blob/canary/packages/next/client/link.tsx
+        let {pathname, hostname, origin, search, hash, protocol, port} = window.location
+        let domain = hostname;
+
+        if (Object.hasOwn(whitelistHosts, hostname)) {
+            log(pathname, hostname)
+            domain = whitelistHosts[hostname]
+            log('DNS Selected ==>', domain);
+        }
+        const currentHostname = `${domain}${port ? `:${port}` : ''}`;
+
+        withPathname.map(({ name, path}) => {
+            let redirectUrl = new URL(protocol.replace(
+                /^http(?!s)/,
+                'https'
+            ).concat('//').concat(currentHostname))
+            //newRedirectUrl.pathname = pathname
+            redirectUrl.pathname = path
+            redirectUrl.search = search
+            redirectUrl.hash = hash
+            newRedirectUrls.push({ name, redirectUrl})
+        })
+        setRedirectUrls(newRedirectUrls)
+    }, [])
+
     return (
         <HttpsRedirect>
             <div>
-                <Welcome name={hostname}/>
-                <Redirect domain={domain} protocol={protocol}/>
+                <div className="welcome">
+                    <h1>Le PIM change d'url de connexion et devient:</h1>
+                    <div>
+                        {
+                            redirectUrls.map(({ name, redirectUrl }, index) => (
+                                <p key={index}>
+                                    { name }:&nbsp;
+                                    <Redirect redirectUrl={redirectUrl}/>
+                                </p>
+                            ))
+                        }
+                    </div>
+                </div>
+                <div>Pensez à la modifier et l'ajouter dans vos favoris !</div>
+                <h1>Cette page sera désactivée dans 6 mois </h1>
             </div>
         </HttpsRedirect>
     );
